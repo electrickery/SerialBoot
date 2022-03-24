@@ -1,0 +1,176 @@
+*** info from page 34 and 35 of the Model 4P Service Manual ***
+
+Serial Loader
+
+Invoking the serial loader is similar to forcing a boot from hard
+disk or floppy. In this case the right shift key must be pressed at
+some time during the first three seconds after reset. The pro-
+gram does not care if the key is pressed forever, making it con-
+veluent to connect pins 8 and 10 of the keyboard connector with
+a shorting plug for bench testing of boards. This assumes that
+the object program being loaded does not care about the key
+closure.
+
+Upon entry, the program first asserts DTR (J4 pin 20) and RTS
+(J4 pin 4) true. Next, "Not Ready" is printed on the topmost line
+of the video display. Modem status line CD (J4 pin 8) is then
+sampled. The program loops until it finds CD asserted true. At
+that time the message "Ready" is displayed. Then the program
+sets about determining the baud rate from the host computer.
+
+To determine the baud rate, the program compares data re-
+ceived by the UART to a test byte equal to '55' hex. The receive
+is first set to 19200 baud. If ten bytes are received which are not
+equal to the test byte, the baud rate is reduced. This sequence
+is repeated until a valid test byte is received. If ten failures occur
+at 50 baud, the entire process begins again at 19200 baud. If a
+valid test byte is received, the program waits for ten more to ar-
+rive before concluding that it has determined the correct baud
+rate. If at this time an improper byte is received, or a receiver er-
+ror (overrun, framing, or parity) is intercepted, the task begins
+again at 19200 baud.
+
+In order to get to this point, the host or the modem must assert
+CD true. The host must transmit a sequence of test bytes equal
+to '55' hex with 8 data bits, odd parity, and1 or 2 stop bits. The
+test bytes should be separated by approximately 0.1 second to
+avoid overrun errors.
+
+When the program has determined the baud rate, the message:
+
+   "Found Baud Rate x"
+  
+is displayed on the screen, where "x" is a letter from A tp P,
+meaning:
+
+A = 50 baud  E = 150    I = 1800   M = 4800
+B = 75       F = 300    J = 2000   N = 7200
+C = 110      G = 600    K = 2400   O = 9600
+D = 134.5    H = 1200   L = 3600   P = 19200
+
+The same message less the character signifying the baud rate
+is transmitted to the host, with the same baud rate and protocol.
+This message is the signal to the host to stop transmitting test bytes.
+
+After the program has transmitted the baud rate message, it
+reads from the UART data register in order to clear any overrun
+error that may have occurred due to the test bytes coming in
+during the transmission of the message. This is because the re-
+ceiver must be made ready to receive a sync byte signalling the
+beginning of the command file. For this reason, it is important
+that the host wait until the entire baud rate message (16 char-
+acters) is received before transmitting the sync byte, which is
+equal to 'FF' hex.
+
+When the program receives the sync byte, the message:
+
+   "Loading"
+   
+is displayed on the screen. Again, the same message is trans-
+mitted to the host, and, again, the host must wait for the entire
+transmission before starting into the command file.
+
+If the receiver should intercept a receive error while waiting for
+the sync byte, the entire operation up to this point is aborted.
+The video display is cleared and the message:
+
+   "Error, x"
+   
+is displayed near the bottom of the screen, where "x" is a letter
+from B to H, meaning:
+
+   B = parity error
+   C = framing error
+   D = parity & framing errors
+   E = overrun error
+   F = parity & overrun errors
+   G = framing & overrun errors
+   H = parity & framing & overrun errors
+   
+The message:
+
+   "Error"
+   
+is then transmitted to the host. The entire process is then re-
+peated from the "Not Ready" message. A six second delay is
+inserted before reinitialization. This is longer than the time re-
+quired to transmit five bytes at 50 baud, so there is no need to
+be extra careful here.
+
+If the sync byte is received without error, then the "Loading"
+message is transmitted and the program is ready to receive the
+command file. After receiving the "Loading" message the host
+can transmit the file without nulls or delays between bytes.
+
+   Since the file represents Z80 machine code and all 256
+   combinations are meaningful, it would be disasterous to
+   transmit nullsor other ASCII control codes as fillers, ac-
+   knowledgement, or start-stop bytes. The only control
+   codes needed are the standard command file control
+   bytes.)
+   
+Data can be transmitted to the loader at 19200 baud with no de-
+lays inserted. Two stop bits are recommended at high baud
+rates.
+
+See the File Loader description for more information on the file
+loading.
+
+If a receive error should occur during file loading, the abort pro-
+cedure described above will take place, so when attempting re-
+more control, it is wise to monitor the host receiver during
+transmission of the file. When the host is near the object board,
+as it the case in the factory application, or when more than one
+board is loaded, it may be advantateous or even nec-
+essary to ignore the transmitted respinses of the object
+board(s) and to manual pace the test byte, sync byte, and
+command file phases of the transmission process, using the 
+video display for handshaking.
+
+
+File Loader
+
+The file loader is actually two modules - the actual loader and
+a set of routines to fetch bytes from the file on disk. The loader
+is invoked via a RTS 28H. The byte fetcher is called by the
+loader using RST 20H. Since restart vectors can be redirected,
+the same loader is used by the RS-232 boot. The difference is
+that the RST20H is redirected to point to the RS-232 data re-
+ceiving routine. The loader reads standard loader records and
+acts on two types:
+
+   01   Data Load
+        1 byte with length of bloack, including address
+        1 word with address to load the data
+        n bytes of data, where n+2 equals the length specified
+        
+   02   Transfer Address
+        1 byte with the value of 02
+        1 word with the address to start execution at.
+        
+ANy other loader code is treated as a comment block and is ig-
+nored. Once an 02 record has been found, the loader stops
+reading, even if there is additional data, so be sure to place the 
+02 record at the end of the file.
+
+
+*** Extra info ***
+
+It is assummed (implied, but not explicitly stated) that the records
+are encoded as hex, so two characters per byte. The file format looks
+like simplified hex-intel records.
+
+01 record:
+  01LLAAAANNNNNNNN...NN
+  | | |   |
+  | | |   data bytes
+  | | two address bytes
+  | length byte, 2 + the number of data bytes
+  record type
+
+02 record:
+  02AAAA
+  | |
+  | two address bytes
+  record type
+  
