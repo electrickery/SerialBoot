@@ -13,6 +13,7 @@ import struct
 port        = '/dev/ttyUSB0'
 baudRate    = 9600
 interval    = 0.1
+load_interval = 0.00001
 
 baudRateMsg = 'Found Baud Rate'
 loadingMsg  = 'Loading'
@@ -61,6 +62,8 @@ file = open(hexFile, 'r')
 lines = file.readlines()
 file.close()
             
+ser.timeout = load_interval
+
 for line in lines:
     lineStrip = line.strip()
     if (lineStrip):
@@ -68,10 +71,15 @@ for line in lines:
         partLineStrip = lineStrip
         while(partLineStrip):
             hexChar = partLineStrip[0:2]
-            print('  ' + hexChar + '  ' + str(int(hexChar,16)))
+#            print('  ' + hexChar + '  ' + str(int(hexChar,16)))
             ser.write(struct.pack('B', int(hexChar,16)))
             partLineStrip = partLineStrip[2:]
             response = ser.read().decode()
+            time.sleep(interval) 
             if (response != ''):
                 print("< " + response)
                 break
+
+time.sleep(interval * 5) 
+ser.write(char.encode())
+#ser.write(CR)
