@@ -15,14 +15,40 @@ There are two programs:
 inthex2lmf.py - converts hex-intel records to a hex presentation of LMF on stdout
 
 Usage:
-  python3 inthex2lmf.py <inputFile.hex> [<entryPoint>] >  <outputFile.lmf.txt
+  python3 inthex2lmf.py <inputFile.hex> [< entryPoint >] >  <outputFile.lmf.txt
   
   The default entry point is the first address of the program.
 
 serialService.py - initiates the serial transfer and sends the binary presentation of the hexFile to the Model 4P
 
 Usage: 
-  python3 serialService.py <lmfFile> [<ttyPort>]
+  python3 serialService.py <lmfFile> [< ttyPort >]
 
 
-A version of serialService that uses real LMF is planned.
+A version of serialService that uses real LMF is being tested.
+
+ASCII art fot the cable between Model 4P and a standard PC-serial port:
+
+
+   	M4P                    PC            PC
+	25-pin DIN             (9-pin subDE  25-pin subDB  function
+    	7 -------------------- 5 ----------- 7 -        GND
+    	2 -------------------- 2 ----------- 3 -        M4P TxD, PC RxD
+    	3 -------------------- 3 ----------- 2 -        M4P RxD, PC TxD
+	
+	
+    	8 -+        CD
+       	|             loop
+   	20 -+        DTR
+   	
+                           	7 +-          4 +-  RTS
+                             	|             |             loop
+                           	5 +             +-  CTS
+	
+                           	6 +-          6 +-  DSR
+                             	|             |
+                           	1 +-          8 +-  CD        loop
+                             	|             |
+                           	4 +-         20 +-  DTR
+
+
