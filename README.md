@@ -47,12 +47,12 @@ Wiring PC side:
     
                                7 +-          4 +-  RTS
                                  |             |             loop
-                               5 +             +-  CTS
+                               5 +           5 +-  CTS
 
-     6 +-          6 +-  DSR
-       |             |
-     1 +-          8 +-  CD        loop
-       |             |
-     4 +-         20 +-  DTR
+                               6 +-          6 +-  DSR
+                                 |             |
+                               1 +-          8 +-  CD        loop
+                                 |             |
+                               4 +-         20 +-  DTR
 
 
