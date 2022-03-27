@@ -61,4 +61,5 @@ Notes:
 * The switch from 'Not Ready' to 'Ready' is now instantaneously, but could be controlled from the host side. Not sure this can be done platform/interface independent.
 * This solution is developed and tested only on X64 Linux. It should work on different platforms too.
 
+Below a photo of the screen after loading the original SCRDUMP.lmf.txt. The newer one dumps 16 lines and allows for some simple navigation ('<' and '>' keys).
 ![Hex-ASCII dump of original 10 line SCRDUMP](./SCRNDUMP.jpg)
