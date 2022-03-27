@@ -32,22 +32,22 @@ ASCII art fot the cable between Model 4P and a standard PC-serial port:
 Transmit & reeceive lines between M4P and PC:
 
    	M4P                    PC            PC
-	25-pin DIN             (9-pin subDE  25-pin subDB  function
-    	7 -------------------- 5 ----------- 7 -        GND
-    	2 -------------------- 2 ----------- 3 -        M4P TxD, PC RxD
-    	3 -------------------- 3 ----------- 2 -        M4P RxD, PC TxD
-	
+    25-pin DIN             (9-pin subDE  25-pin subDB  function
+        7 -------------------- 5 ----------- 7 -        GND
+        2 -------------------- 2 ----------- 3 -        M4P TxD, PC RxD
+        3 -------------------- 3 ----------- 2 -        M4P RxD, PC TxD
+
 Wiring M4P side:
 
      8 -+        CD
-       	|             loop
-   	20 -+        DTR
-   	
+        |             loop
+    20 -+        DTR
+
 Wiring PC side:
     
-     7 +-          4 +-  RTS
-       |             |             loop
-     5 +             +-  CTS
+                               7 +-          4 +-  RTS
+                                 |             |             loop
+                               5 +             +-  CTS
 
      6 +-          6 +-  DSR
        |             |
