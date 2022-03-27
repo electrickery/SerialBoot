@@ -3,11 +3,16 @@
 ;Source code is for ZMASM, Zilog Macro Cross Assembler (640K DOS version)
 ;ZMASM is available from my home page,
 ;  URL http://www2.whidbey.net/~beattidp/
+
+; modified by F.J. Kraan, fjkraan@electrickery.nl at 2022-03-27:
+; - adapted to z80pack/z80asm (https://github.com/udo-munk/z80pack)
+; - added simple keyboard interface for next/previous memory page
+;  URL https://github.com/electrickery/SerialBoot
 ;
         ORG     6000H
 ;
         JP      ENTRY
-        defw    1               ;reserve 1 word (2 bytes)
+MEMPTR  defw    4000h           ;reserve 1 word (2 bytes)
                                 ;  -- put MEMPTR here
 ;
 ;**************************************************************
@@ -22,31 +27,33 @@ HXDGT   AND     0FH
         RET
 
 ;returns with C-flag set if printable ASCII
-ckASC   CP      128
-        JR      C,$ASCok
+chkASC  CP      128
+        JR      C, $ASCok
         CP      32
+        JR      C, $ASCok
         CCF
 $ASCok  RET
 
 ;convert byte pointed to by HL to hex ASCII in BC, C:MSD, B:LSD
 ; destroys A, BC
-cvHX    LD      C,A
+cvHX    
+        LD      C, A
         CALL    HXDGT
-        LD      B,A
-        LD      A,C
+        LD      B, A
+        LD      A, C
         RRA
         RRA
         RRA
         RRA
         CALL    HXDGT
-        LD      C,A
+        LD      C, A
 
 ;write two bytes from C and B to buffer at (DE) with increment
-OUPB    LD      A,C
-        LD      (DE),A
+OUPB    LD      A, C
+        LD      (DE), A
         INC     DE
-        LD      A,B
-        LD      (DE),A
+        LD      A, B
+        LD      (DE), A
         INC     DE
         RET
 
@@ -62,20 +69,21 @@ VIDPTR  DEFW    VIDRAM+0
 VIDSIZ  EQU     1920
 
 ;clear video screen -- note: must be in video memory map mode.
-CLRSCR  LD      HL,VIDRAM
-        LD      DE,VIDRAM+1
-        LD      BC,VIDSIZ-1
-        LD      (HL),' '
+CLRSCR  LD      HL, VIDRAM
+        LD      (VIDPTR), HL    ; restore video pointer
+        LD      DE, VIDRAM+1
+        LD      BC, VIDSIZ-1
+        LD      (HL) ,' '
         LDIR
         RET
 
 ;Carriage-Return/LineFeed
 CRLF    PUSH    HL
-        LD      HL,(VIDPTR)
-        LD      DE,LINESIZ
-        ADD     HL,DE
+        LD      HL, (VIDPTR)
+        LD      DE, LINESIZ
+        ADD     HL, DE
         LD      (VIDPTR),HL
-        EX      DE,HL           ;also return it in DE
+        EX      DE, HL           ;also return it in DE
         POP     HL
         RET
 
@@ -84,7 +92,9 @@ CRLF    PUSH    HL
 ;       M A I N   P R O G R A M
 ;
 
-ENTRY   LD      SP,5FFEH
+ENTRY
+        LD      SP,5FFEH
+RENTRY
         LD      HL,ENTRY        ;set (gimick) for re-entry every time.
         PUSH    HL
 ;
@@ -98,8 +108,9 @@ ENTRY   LD      SP,5FFEH
 ;
         LD      HL,(MEMPTR)
         LD      DE,(VIDPTR)
-        LD      C,10            ;do ten lines for the test.
-lp02    PUSH    BC
+        LD      C,10h           ;do sixteen lines for the test.
+lp02
+        PUSH    BC 
         PUSH    DE              ;save video pointer
         LD      A,H             ;p/u MSB of current address
         CALL    cvHX            ;convert to hex ascii
@@ -108,7 +119,8 @@ lp02    PUSH    BC
         CALL    SPAC
         PUSH    HL              ;save mem pointer to show ascii
         LD      B,16            ;each line has 16 bytes.
-lp01    PUSH    BC              ;save loop counter
+lp01
+        PUSH    BC              ;save loop counter
         LD      A,(HL)          ;get the byte from memory
         INC     HL
         CALL    cvHX            ;convert to hex ascii
@@ -118,30 +130,71 @@ lp01    PUSH    BC              ;save loop counter
         POP     HL              ;recover mem pointer
 
         LD      B,16            ;each line has 16 bytes.
-lp01a   PUSH    BC
+lp01a
+        PUSH    BC
         LD      A,(HL)
         INC     HL
-        CALL    ckASC
-        JR      C,gd
+        CALL    chkASC
+        JR      C,asIs
         LD      A,'.'
-gd      LD      (DE),A
+asIs
+        LD      (DE),A
         INC     DE
         POP     BC
 
         DJNZ    lp01a
-        POP     DE              ;recover video pointer
+        POP     DE              ;recover video pointer 
         CALL    CRLF            ;buffer pointer -> next line
 
-        POP     BC
+        POP     BC                                              
         DEC     C               ;and repeat for count
         JR      NZ,lp02
 
+;        POP     HL
         DI
-        HALT
+;        HALT
 
-;        ORG     6000H
+loop:
+        LD      A, (0F420h) ; mode 2 keyboard
+        CALL    DLY
+        BIT     6, A       ; '.'/'>'
+        JP      NZ, NEXTPG
+        BIT     4, A       ; ','/'<'
+        JP      NZ, PREVPG
+        JP      loop 
+        
+NEXTPG:
+        LD      A, (MEMPTR + 1)
+        INC     A
+        LD      (MEMPTR + 1), A
+        JP      RENTRY
+    
+PREVPG:
+        LD      A, (MEMPTR + 1)
+        DEC     A
+        LD      (MEMPTR + 1), A
+        JP      RENTRY
 
-MEMPTR  DEFW    4000H            ;start of full-screen hex dump.
+DLY:
+        PUSH    AF
+        PUSH    BC
+        LD      BC, 0FFFFh
+        LD      DE, 0FFFFh
+DLY1:
+        DEC     DE
+DLY2:
+        DEC     BC
+        LD      A, B
+        ADD     A, C
+        JP      NZ, DLY2
+        
+        LD      A, D
+        ADD     A, E
+        JP      NZ, DLY1
+        
+        POP     BC
+        POP     AF
+        RET
 
         END     ENTRY
 ; ********************************************************************
