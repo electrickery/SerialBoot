@@ -32,7 +32,7 @@ ASCII art fot the cable between Model 4P and a standard PC-serial port:
 Transmit & reeceive lines between M4P and PC:
 
    	M4P                    PC            PC
-    25-pin DIN             (9-pin subDE  25-pin subDB  function
+    25-pin DIN             9-pin subDE   25-pin subDB  function
         7 -------------------- 5 ----------- 7 -        GND
         2 -------------------- 2 ----------- 3 -        M4P TxD, PC RxD
         3 -------------------- 3 ----------- 2 -        M4P RxD, PC TxD
@@ -48,6 +48,12 @@ Wiring PC side:
                                7 +-          4 +-  RTS
                                  |             |             loop
                                5 +           5 +-  CTS
+
+Notes:
+
+* Loading data appears to be working reliable, but the control transfer is still a bit finicky
+* The switch from 'Not Ready' to 'Ready' is now instantaneously, but could be controlled from the host side. Not sure this can be done platform/interface independent.
+* This solution is developed and tested only on X64 Linux. It should work on different platforms too.
 
                                6 +-          6 +-  DSR
                                  |             |
