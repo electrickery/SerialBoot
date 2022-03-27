@@ -49,16 +49,16 @@ Wiring PC side:
                                  |             |             loop
                                5 +           5 +-  CTS
 
-Notes:
-
-* Loading data appears to be working reliable, but the control transfer is still a bit finicky
-* The switch from 'Not Ready' to 'Ready' is now instantaneously, but could be controlled from the host side. Not sure this can be done platform/interface independent.
-* This solution is developed and tested only on X64 Linux. It should work on different platforms too.
-
                                6 +-          6 +-  DSR
                                  |             |
                                1 +-          8 +-  CD        loop
                                  |             |
                                4 +-         20 +-  DTR
 
+Notes:
 
+* Loading data appears to be working reliable, but the control transfer is still a bit finicky
+* The switch from 'Not Ready' to 'Ready' is now instantaneously, but could be controlled from the host side. Not sure this can be done platform/interface independent.
+* This solution is developed and tested only on X64 Linux. It should work on different platforms too.
+
+![Hex-ASCII dump of original 10 line SCRDUMP](./SCRNDUMP.jpg)
