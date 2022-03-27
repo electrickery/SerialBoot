@@ -1,4 +1,4 @@
-Serial fun with a Model 4P
+Serial fun with a Tandy TRS-80 Model 4P
 
 The Model 4P has an option to boot from the serial port. The feature appears to be implemented to help testing boards at the factory. It is described in both the Technical Manual and the Service Manual. It it somewhat terse, but with some experimenting it is doable to create a program to make it work.
 
@@ -29,6 +29,7 @@ A version of serialService that uses real LMF is being tested.
 
 ASCII art fot the cable between Model 4P and a standard PC-serial port:
 
+Transmit & reeceive lines between M4P and PC:
 
    	M4P                    PC            PC
 	25-pin DIN             (9-pin subDE  25-pin subDB  function
@@ -36,19 +37,22 @@ ASCII art fot the cable between Model 4P and a standard PC-serial port:
     	2 -------------------- 2 ----------- 3 -        M4P TxD, PC RxD
     	3 -------------------- 3 ----------- 2 -        M4P RxD, PC TxD
 	
-	
-    	8 -+        CD
+Wiring M4P side:
+
+     8 -+        CD
        	|             loop
    	20 -+        DTR
    	
-                           	7 +-          4 +-  RTS
-                             	|             |             loop
-                           	5 +             +-  CTS
-	
-                           	6 +-          6 +-  DSR
-                             	|             |
-                           	1 +-          8 +-  CD        loop
-                             	|             |
-                           	4 +-         20 +-  DTR
+Wiring PC side:
+    
+     7 +-          4 +-  RTS
+       |             |             loop
+     5 +             +-  CTS
+
+     6 +-          6 +-  DSR
+       |             |
+     1 +-          8 +-  CD        loop
+       |             |
+     4 +-         20 +-  DTR
 
 
