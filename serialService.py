@@ -33,9 +33,10 @@ if len(sys.argv) > 2:
 ser = serial.Serial(port, baudRate, timeout=interval, parity=serial.PARITY_ODD)  # open serial port
 
 char = 'U'
+print("Sending U's...")
 while(True):
     ser.write(char.encode())
-    print("> " + char)
+#    print("> " + char)
     response = ser.readline().strip().decode()
     if (response != ''):
         print("< '" + response + "'")
@@ -52,7 +53,7 @@ while(True):
     time.sleep(interval * 5) 
     response = ser.readline().strip().decode()
     if (response != ''):
-        print("< " + response)
+        print("< '" + response + "'")
         if (response == loadingMsg):
             print("sync char is found, start loading")
             break
