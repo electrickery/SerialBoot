@@ -160,12 +160,12 @@ lp01a
 ;        HALT
 
 loop:
+        CALL    DLY
         LD      A, (0F420h) ; mode 2 keyboard
         BIT     6, A       ; '.'/'>'
         JP      NZ, NEXTPG
         BIT     4, A       ; ','/'<'
         JP      NZ, PREVPG
-        CALL    DLY
         JP      loop 
         
 NEXTPG:
