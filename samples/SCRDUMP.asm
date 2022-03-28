@@ -26,13 +26,17 @@ HXDGT   AND     0FH
         DAA
         RET
 
-;returns with C-flag set if printable ASCII
-chkASC  CP      128
-        JR      C, $ASCok
-        CP      32
-        JR      C, $ASCok
-        CCF
-$ASCok  RET
+;returns '.' set if not printable ASCII
+filtASC CP      080h
+        JR      NC, $nonASC
+        CP      020h
+        JR      C, $nonASC
+        RET
+$nonASC
+        LD      A, '.'
+        RET
+        
+        
 
 ;convert byte pointed to by HL to hex ASCII in BC, C:MSD, B:LSD
 ; destroys A, BC
@@ -134,10 +138,11 @@ lp01a
         PUSH    BC
         LD      A,(HL)
         INC     HL
-        CALL    chkASC
-        JR      C,asIs
-        LD      A,'.'
-asIs
+;        CALL    chkASC
+;        JR      C,asIs
+;        LD      A,'.'
+        CALL    filtASC
+;asIs
         LD      (DE),A
         INC     DE
         POP     BC
@@ -156,11 +161,11 @@ asIs
 
 loop:
         LD      A, (0F420h) ; mode 2 keyboard
-        CALL    DLY
         BIT     6, A       ; '.'/'>'
         JP      NZ, NEXTPG
         BIT     4, A       ; ','/'<'
         JP      NZ, PREVPG
+        CALL    DLY
         JP      loop 
         
 NEXTPG:
